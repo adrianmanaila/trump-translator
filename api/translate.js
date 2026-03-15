@@ -6,14 +6,13 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') { res.status(405).json({ error: 'POST only' }); return; }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  
-  // Debug: tell us exactly what's wrong with the key
+
   if (!apiKey) {
-    res.status(500).json({ error: 'ENV_MISSING: ANTHROPIC_API_KEY is not set in Vercel environment variables' });
+    res.status(500).json({ error: 'ENV_MISSING: ANTHROPIC_API_KEY not set' });
     return;
   }
   if (!apiKey.startsWith('sk-ant-')) {
-    res.status(500).json({ error: 'ENV_INVALID: Key found but does not start with sk-ant- (length: ' + apiKey.length + ', starts with: ' + apiKey.substring(0,8) + ')' });
+    res.status(500).json({ error: 'ENV_INVALID: starts with: ' + apiKey.substring(0,8) });
     return;
   }
 
@@ -25,7 +24,7 @@ export default async function handler(req, res) {
 Context: Operation Epic Fury (US-Israel war on Iran, late Feb 2026). Trump was warned Iran would close Hormuz — proceeded anyway. Iran did not capitulate. US Navy unable to escort tankers. 13+ Americans killed. Billions weekly in costs. New Supreme Leader Mojtaba Khamenei vowed continued closure. Gulf allies privately furious. Saudi base hosting US aircraft was struck. TACO doctrine: Trump policy announcements frequently reverse. Statements routinely function as market interventions.
 
 Respond ONLY with valid JSON, no markdown:
-{"plain":"2-3 neutral sentences. What was stated, no editorializing.","market":"Specific assets signaled, direction, real policy or noise.","geo":"What geopolitical reality is managed or obscured. Flat facts only.","score":3.5,"verdict":"3-5 word deadpan label","claims":[{"text":"near-verbatim claim","verdict":"true|false|misleading|unverifiable","detail":"one flat factual sentence"}],"spin":[{"audience":"specific target","why":"one sentence on engineered outcome"}]}
+{"plain":"2-3 neutral sentences.","market":"Specific assets signaled, direction, real policy or noise.","geo":"What geopolitical reality is managed or obscured. Flat facts only.","score":3.5,"verdict":"3-5 word deadpan label","claims":[{"text":"near-verbatim claim","verdict":"true|false|misleading|unverifiable","detail":"one flat factual sentence"}],"spin":[{"audience":"specific target","why":"one sentence on engineered outcome"}]}
 3-5 claims. 2-4 spin items. Score 0=true to 5=inverts reality.`;
 
   try {

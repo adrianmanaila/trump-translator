@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trump Translator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a0a;font-family:'IBM Plex Sans',sans-serif;min-height:100vh}
+  .head{background:#CC0000;padding:12px 24px;border-bottom:4px solid #000;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:100}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:40px;color:#fff;letter-spacing:2px;line-height:1}
+  .sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  .live{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:1px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:#7fff7f;animation:pu 1.5s infinite}
+  @keyframes pu{0%,100%{opacity:1}50%{opacity:.3}}
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:calc(100vh - 72px)}
+  .col{display:flex;flex-direction:column;overflow:hidden}
+  .col-head{background:#0d0d0d;border-bottom:1px solid #1e1e1e;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:72px;z-index:10}
+  .col-title{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#555}
+  .right-col{border-left:1px solid #1a1a1a;display:flex;flex-direction:column}
+  .feed-toolbar{padding:8px 12px;display:flex;gap:8px;border-bottom:1px solid #1a1a1a;flex-shrink:0;background:#0d0d0d}
+  .search{flex:1;background:#111;border:1px solid #222;border-radius:3px;color:#ccc;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:7px 10px;outline:none}
+  .search::placeholder{color:#333}
+  .search:focus{border-color:#444}
+  .rbtn{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#555;background:#111;border:1px solid #222;padding:7px 12px;border-radius:3px;cursor:pointer;white-space:nowrap;transition:all .15s;text-transform:uppercase;letter-spacing:1px}
+  .rbtn:hover{color:#ccc;border-color:#555}
+  .feed-list{overflow-y:auto;flex:1;min-height:0}
+  .feed-list::-webkit-scrollbar{width:4px}
+  .feed-list::-webkit-scrollbar-thumb{background:#222;border-radius:2px}
+  .post{padding:11px 14px;border-bottom:1px solid #161616;cursor:pointer;transition:background .1s;border-left:3px solid transparent}
+  .post:hover{background:#161616}
+  .post.sel{background:#1c0808;border-left-color:#CC0000}
+  .post-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#444;margin-bottom:4px}
+  .post-text{font-size:12px;color:#888;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .post-stats{display:flex;gap:12px;margin-top:5px}
+  .pstat{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2a2a2a}
+  .msg{padding:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#555;line-height:1.6}
+  .msg.err{color:#885555}
+  /* Right col */
+  .sel-section{padding:14px;border-bottom:1px solid #1a1a1a;flex-shrink:0;background:#0d0d0d}
+  .section-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#444;margin-bottom:8px}
+  .sel-text{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#999;line-height:1.5;max-height:100px;overflow:hidden}
+  .sel-placeholder{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2a2a2a;font-style:italic}
+  .gobtn{width:100%;background:#CC0000;border:none;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;padding:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;flex-shrink:0}
+  .gobtn:hover{background:#aa0000}
+  .gobtn:disabled{background:#1a1a1a;color:#333;cursor:not-allowed}
+  .manual-section{flex:1;padding:14px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+  .divider{padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2a2a2a;text-transform:uppercase;letter-spacing:1px;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a;background:#0a0a0a;flex-shrink:0}
+  textarea{width:100%;background:#111;border:1px solid #1e1e1e;border-radius:3px;color:#bbb;font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px;resize:vertical;outline:none;line-height:1.6;min-height:120px}
+  textarea::placeholder{color:#2a2a2a}
+  textarea:focus{border-color:#333}
+  .usebtn{background:#1a1a1a;border:1px solid #2a2a2a;color:#666;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:9px 14px;border-radius:3px;cursor:pointer;width:100%;transition:all .15s}
+  .usebtn:hover{border-color:#CC0000;color:#ccc}
+  /* Results */
+  .results{padding:0;flex-shrink:0}
+  .res-block{padding:14px 16px;border-bottom:1px solid #1a1a1a}
+  .res-block:last-child{border-bottom:none}
+  .res-label{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .res-text{font-size:13px;color:#bbb;line-height:1.7}
+  /* Lies meter */
+  .lm-outer{padding:14px 16px;border-bottom:1px solid #1a1a1a}
+  .lm-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .lm-num{font-family:'Bebas Neue',sans-serif;font-size:48px;line-height:1;min-width:65px}
+  .lm-verdict{font-family:'IBM Plex Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:500}
+  .lm-desc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#555;margin-top:3px}
+  .lm-track{height:8px;background:#1a1a1a;border-radius:4px;overflow:hidden;margin-bottom:12px}
+  .lm-fill{height:100%;border-radius:4px;transition:width .8s ease}
+  .claims{display:flex;flex-direction:column;gap:7px}
+  .claim{background:#0d0d0d;border-radius:3px;padding:9px 12px;border-left:3px solid #333}
+  .claim.true{border-left-color:#3a7a4a}
+  .claim.false{border-left-color:#993333}
+  .claim.misleading{border-left-color:#996633}
+  .claim.unverifiable{border-left-color:#445599}
+  .vtag{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:2px;display:inline-block;margin-bottom:4px}
+  .vtag.true{background:#1a2f1a;color:#60c070}
+  .vtag.false{background:#2f1a1a;color:#e06060}
+  .vtag.misleading{background:#2f221a;color:#e09040}
+  .vtag.unverifiable{background:#1a1a2f;color:#7788cc}
+  .claim-t{font-size:12px;color:#999;line-height:1.5}
+  .claim-d{font-size:11px;color:#555;line-height:1.5;margin-top:3px;font-style:italic}
+  /* Spin */
+  .spin-outer{padding:14px 16px}
+  .spin-item{background:#0d0d0d;border-radius:3px;padding:11px 13px;border-left:3px solid #552288;margin-bottom:7px}
+  .spin-item:last-child{margin-bottom:0}
+  .spin-who{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#9955cc;margin-bottom:5px}
+  .spin-text{font-size:12px;color:#999;line-height:1.6}
+  /* Colors */
+  .c0{color:#60d080}.c1{color:#a0d060}.c2{color:#d0c040}.c3{color:#f0a030}.c4{color:#e06030}.c5{color:#cc3333}
+  .b0{background:#60d080}.b1{background:#a0d060}.b2{background:#d0c040}.b3{background:#f0a030}.b4{background:#e06030}.b5{background:#cc3333}
+  .spinner{width:14px;height:14px;border:2px solid #222;border-top-color:#CC0000;border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:middle}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .loading-msg{display:flex;align-items:center;gap:10px;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#555}
+  .err-msg{padding:14px;color:#885555;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.5}
+  /* Panel headers for results */
+  .res-panel-head{background:#0d0d0d;border-bottom:1px solid #1e1e1e;border-top:2px solid #CC0000;padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#555;margin-top:8px}
+  .res-panel-head.purple{border-top-color:#7733bb;color:#9955cc;background:#0d0a14}
+  .res-panel-head.red{border-top-color:#CC0000;color:#cc6666}
+  @media(max-width:640px){
+    .layout{grid-template-columns:1fr}
+    .right-col{border-left:none;border-top:1px solid #1a1a1a}
+  }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div>
+    <div class="logo">Trump Translator</div>
+    <div class="sub">Live feed · Select · Decode · No account needed</div>
+  </div>
+  <div class="live"><div class="pulse"></div>CNN / Truth Social archive · 5min refresh</div>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT: Feed -->
+  <div class="col">
+    <div class="col-head">
+      <div class="col-title">Truth Social posts <span id="feedCount" style="color:#333;margin-left:8px"></span></div>
+    </div>
+    <div class="feed-toolbar">
+      <input class="search" id="search" type="text" placeholder="Filter posts..." oninput="filterPosts()">
+      <button class="rbtn" onclick="loadFeed()">↻ Refresh</button>
+    </div>
+    <div class="feed-list" id="feedList">
+      <div class="loading-msg"><div class="spinner"></div><span>Loading Truth Social feed...</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Selected + Results -->
+  <div class="col right-col">
+    <div class="sel-section">
+      <div class="section-label">Selected for translation</div>
+      <div id="selDisplay" class="sel-placeholder">← Select a post from the feed</div>
+    </div>
+    <button class="gobtn" id="gobtn" onclick="doTranslate()" disabled>Translate</button>
+    <div class="divider">— or paste any statement manually —</div>
+    <div class="manual-section">
+      <div class="section-label">Manual input</div>
+      <textarea id="manual" placeholder="Paste any Trump statement, Truth Social post, speech excerpt..."></textarea>
+      <button class="usebtn" onclick="useManual()">Use this text ↑</button>
+    </div>
+
+    <!-- Results injected here -->
+    <div id="results"></div>
+  </div>
+
+</div>
+
+<script>
+const VERDICTS=['Mostly True','Selective Truth','Misleading','Mostly False','Egregiously False','Pathological'];
+const DESCS=['Claims broadly accurate','True elements with key omissions','Technically possible, practically deceptive','Core assertions lack factual basis','Directly contradicted by evidence','Statements invert documented reality'];
+
+let posts=[], selText='';
+
+function strip(h){return(h||'').replace(/<[^>]+>/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim();}
+function fmtN(n){if(!n)return'0';return n>=1000?(n/1000).toFixed(1)+'k':String(n);}
+function fmtD(iso){const d=new Date(iso);return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
+function sc(s){return String(Math.min(5,Math.max(0,Math.round(s))));}
+
+async function loadFeed(){
+  document.getElementById('feedList').innerHTML='<div class="loading-msg"><div class="spinner"></div><span>Fetching posts...</span></div>';
+  document.getElementById('feedCount').textContent='';
+  const url='/api/feed';
+  const proxies=["https://api.allorigins.win/raw?url="+encodeURIComponent(url),"https://corsproxy.io/?"+encodeURIComponent(url),"https://thingproxy.freeboard.io/fetch/"+url];
+  let data=null;
+  try{const r=await fetch(url);if(r.ok){data=await r.json();}}catch(e){}
+  if(!data||!data.length){
+    document.getElementById('feedList').innerHTML='<div class="msg err">Feed could not be loaded.<br><br>Use the manual paste area on the right to translate any post.</div>';
+    return;
+  }
+  posts=data.filter(p=>strip(p.content).length>20).slice(0,100);
+  document.getElementById('feedCount').textContent='('+posts.length+')';
+  renderPosts(posts);
+}
+
+function renderPosts(list){
+  const el=document.getElementById('feedList');
+  if(!list.length){el.innerHTML='<div class="msg">No posts match.</div>';return;}
+  el.innerHTML=list.map((p,i)=>`<div class="post" id="pi${i}" onclick="pick(${i})">
+    <div class="post-date">${fmtD(p.created_at)}</div>
+    <div class="post-text">${strip(p.content)}</div>
+    <div class="post-stats">
+      <span class="pstat">↺ ${fmtN(p.reblogs_count)}</span>
+      <span class="pstat">♡ ${fmtN(p.favourites_count)}</span>
+      <span class="pstat">💬 ${fmtN(p.replies_count)}</span>
+    </div>
+  </div>`).join('');
+}
+
+function filterPosts(){
+  const q=document.getElementById('search').value.toLowerCase();
+  renderPosts(q?posts.filter(p=>strip(p.content).toLowerCase().includes(q)):posts);
+}
+
+function pick(i){
+  document.querySelectorAll('.post').forEach(e=>e.classList.remove('sel'));
+  const el=document.getElementById('pi'+i);
+  if(el){el.classList.add('sel');el.scrollIntoView({block:'nearest'});}
+  setSelected(strip(posts[i].content));
+}
+
+function useManual(){
+  const t=document.getElementById('manual').value.trim();
+  if(!t)return;
+  document.querySelectorAll('.post').forEach(e=>e.classList.remove('sel'));
+  setSelected(t);
+}
+
+function setSelected(t){
+  selText=t;
+  const preview=t.length>200?t.substring(0,200)+'…':t;
+  document.getElementById('selDisplay').className='sel-text';
+  document.getElementById('selDisplay').textContent=preview;
+  document.getElementById('gobtn').disabled=false;
+  document.getElementById('results').innerHTML='';
+  document.getElementById('gobtn').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+const SYS=`You are the Trump Translator — a sharp, unsentimental analytical engine decoding Trump statements into operational meaning.
+
+Context you know: Operation Epic Fury (US-Israel war on Iran, launched late Feb 2026). WSJ reported Trump was warned by Gen. Caine that Iran would likely close the Strait of Hormuz — Trump proceeded anyway believing Iran would capitulate. Iran did not. US Navy unable to escort tankers. At least 13 Americans killed. Billions per week in costs. Iran new Supreme Leader Mojtaba Khamenei (harder line) vowed to keep strait closed. Gulf allies privately furious. Saudi base hosting US tanker aircraft was struck. TACO doctrine: Trump tariff/policy announcements often reverse. Trump statements function as deliberate market interventions designed to move specific asset prices.
+
+Respond ONLY with a valid JSON object, no markdown, no preamble:
+{
+  "plain": "2-3 sentences plain English stripped of hyperbole and caps",
+  "market": "specific market signal — which assets, which direction, real policy or noise management",
+  "geo": "actual geopolitical reality being managed or concealed — specific contradictions with documented facts",
+  "score": 3.5,
+  "verdict": "short verdict phrase",
+  "claims": [
+    {"text": "specific factual assertion from the post", "verdict": "true|false|misleading|unverifiable", "detail": "one sentence on what facts actually show"}
+  ],
+  "spin": [
+    {"audience": "who this targets e.g. MAGA base / oil markets / Congress / Gulf allies", "why": "the specific strategic purpose this deception serves"}
+  ]
+}
+Extract 3-5 claims. Extract 2-4 spin items. Score 0=true to 5=inverts reality.`;
+
+const LOAD_MSGS=["Analyzing statement...","Stripping MAGA amplifiers...","Mapping market implications...","Decoding geopolitical layer...","Cross-referencing facts...","Calibrating lies meter...","Mapping spin architecture..."];
+let lmi=0,lmint;
+function startLM(el){lmi=0;el.textContent=LOAD_MSGS[0];lmint=setInterval(()=>{lmi=(lmi+1)%LOAD_MSGS.length;el.textContent=LOAD_MSGS[lmi];},2000);}
+function stopLM(){clearInterval(lmint);}
+
+async function doTranslate(){
+  if(!selText)return;
+  const btn=document.getElementById('gobtn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner" style="border-top-color:#fff;margin-right:8px"></div> Translating...';
+
+  const res=document.getElementById('results');
+  const loadDiv=document.createElement('div');
+  loadDiv.className='loading-msg';
+  loadDiv.innerHTML='<div class="spinner"></div><span id="lmSpan">Analyzing...</span>';
+  res.innerHTML='';
+  res.appendChild(loadDiv);
+  startLM(document.getElementById('lmSpan'));
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:SYS,messages:[{role:'user',content:selText}]})
+    });
+    stopLM();
+    if(!r.ok){const eb=await r.text();throw new Error('API '+r.status+': '+eb.substring(0,200));}
+    const data=await r.json();
+    const raw=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    if(!raw)throw new Error('No text in response');
+    let p;
+    try{const m=raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/);p=JSON.parse(m?m[0]:raw);}
+    catch(e){throw new Error('Parse failed: '+raw.substring(0,200));}
+    renderResults(p);
+  }catch(e){
+    stopLM();
+    res.innerHTML=`<div class="err-msg">Translation error: ${e.message}</div>`;
+  }
+  btn.disabled=false;
+  btn.innerHTML='Translate';
+}
+
+function renderResults(p){
+  const score=Math.min(5,Math.max(0,parseFloat(p.score)||0));
+  const si=Math.round(score);
+  const scs=sc(score);
+  const html=`
+    <div class="res-panel-head">Decoded Output</div>
+    <div class="res-block">
+      <div class="res-label"><span class="dot" style="background:#60d080"></span><span style="color:#60d080;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px">Plain English</span></div>
+      <div class="res-text">${p.plain||'—'}</div>
+    </div>
+    <div class="res-block">
+      <div class="res-label"><span class="dot" style="background:#f0c040"></span><span style="color:#f0c040;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px">Market Signal</span></div>
+      <div class="res-text">${p.market||'—'}</div>
+    </div>
+    <div class="res-block">
+      <div class="res-label"><span class="dot" style="background:#4090f0"></span><span style="color:#4090f0;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:2px">Geopolitical Move</span></div>
+      <div class="res-text">${p.geo||'—'}</div>
+    </div>
+
+    <div class="res-panel-head red">Lies Meter</div>
+    <div class="lm-outer">
+      <div class="lm-row">
+        <div class="lm-num c${scs}">${score.toFixed(1)}</div>
+        <div>
+          <div class="lm-verdict c${scs}">${p.verdict||VERDICTS[si]}</div>
+          <div class="lm-desc">${DESCS[si]}</div>
+        </div>
+      </div>
+      <div class="lm-track"><div class="lm-fill b${scs}" style="width:${score/5*100}%"></div></div>
+      <div class="claims">
+        ${(p.claims||[]).map(c=>{const v=(c.verdict||'unverifiable').toLowerCase();return`<div class="claim ${v}"><span class="vtag ${v}">${v}</span><div class="claim-t">${c.text||''}</div><div class="claim-d">${c.detail||''}</div></div>`;}).join('')}
+      </div>
+    </div>
+
+    <div class="res-panel-head purple">Spin Decoded — Why These Lies</div>
+    <div class="spin-outer">
+      ${(p.spin||[]).map(s=>`<div class="spin-item"><div class="spin-who">Target: ${s.audience||'—'}</div><div class="spin-text">${s.why||''}</div></div>`).join('')}
+    </div>
+  `;
+  document.getElementById('results').innerHTML=html;
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+loadFeed();
+</script>
+</body>
+</html>
